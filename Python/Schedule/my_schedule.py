@@ -81,30 +81,15 @@ class my_schedule(object):
     
     @property
     def days_until_next_week(self):
-        
-        if self.last_day_in_calendar.weekday() == 6:
-            return 8
-        
-        else:
-            return self.days_until_monday
+        return self.days_until_monday
     
     @property
     def days_until_next_work_week(self):
-        
-        if self.last_day_in_calendar.weekday() == 6:
-            return 8
-        
-        else:
-            return self.days_until_monday
+        return self.days_until_monday
     
     @property
     def days_until_next_weekend(self):
-        
-        if self.last_day_in_calendar.weekday() == 4:
-            return 8
-        
-        else:
-            return self.days_until_saturday
+        return self.days_until_saturday
     
     @property
     def days_left_in_week(self):
@@ -227,29 +212,53 @@ class my_schedule(object):
         if new_null_rest_of_weekend is not None:
             self._day_schedules = pd.concat([self.day_schedules, new_null_rest_of_weekend])
     
-    #def generate_new_null_week(self):
+    def generate_new_null_week(self):
         
+        if self.days_until_next_week != 1:
+            warnings.warn(message = "The last calendar day is not Sunday, so you cannot generate a full week.")
+            return None
         
+        else:
+            return pd.concat([self.generate_new_null_day(days_from_today = i) for i in range(-1 * self.days_until_today + 1, -1 * self.days_until_today + 8)])
     
-    #def add_new_null_week(self):
+    def add_new_null_week(self):
         
+        new_null_week = self.generate_new_null_week()
+            
+        if new_null_week is not None:
+            self._day_schedules = pd.concat([self.day_schedules, new_null_week])            
         
+    def generate_new_null_work_week(self):
         
-    #def generate_new_null_work_week(self):
+        if self.days_until_next_work_week != 1:
+            warnings.warn(message = "The last calendar day is not Sunday, so you cannot generate a full work week.")
+            return None
         
-        #if self.days_until_next_work_week == 8:
+        else:
+            return pd.concat([self.generate_new_null_day(days_from_today = i) for i in range(-1 * self.days_until_today + 1, -1 * self.days_until_today + 6)])
         
-    #def add_new_null_work_week(self):
+    def add_new_null_work_week(self):
         
+        new_null_work_week = self.generate_new_null_work_week()
+            
+        if new_null_work_week is not None:
+            self._day_schedules = pd.concat([self.day_schedules, new_null_work_week])
         
+    def generate_new_null_weekend(self):
         
-    #def generate_new_null_weekend(self):
+        if self.days_until_next_weekend != 1:
+            warnings.warn(message = "The last calendar day is not Friday, so you cannot generate a full work week.")
+            return None
         
+        else:
+            return pd.concat([self.generate_new_null_day(days_from_today = i) for i in range(-1 * self.days_until_today + 1, -1 * self.days_until_today + 3)])
         
+    def add_new_null_weekend(self):
         
-    #def add_new_null_weekend(self):
-        
-        
+        new_null_weekend = self.generate_new_null_weekend()
+            
+        if new_null_weekend is not None:
+            self._day_schedules = pd.concat([self.day_schedules, new_null_weekend])
     
     def generate_new_day(self, days_from_today = None):
         
