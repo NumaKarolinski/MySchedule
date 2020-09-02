@@ -215,7 +215,7 @@ class my_schedule(object):
     def generate_new_null_week(self):
         
         if self.days_until_next_week != 1:
-            warnings.warn(message = "The last calendar day is not Sunday, so you cannot generate a full week.")
+            warnings.warn(message = "The last schedule day is not Sunday, so you cannot generate a full week.")
             return None
         
         else:
@@ -231,7 +231,7 @@ class my_schedule(object):
     def generate_new_null_work_week(self):
         
         if self.days_until_next_work_week != 1:
-            warnings.warn(message = "The last calendar day is not Sunday, so you cannot generate a full work week.")
+            warnings.warn(message = "The last schedule day is not Sunday, so you cannot generate a full work week.")
             return None
         
         else:
@@ -247,7 +247,7 @@ class my_schedule(object):
     def generate_new_null_weekend(self):
         
         if self.days_until_next_weekend != 1:
-            warnings.warn(message = "The last calendar day is not Friday, so you cannot generate a full work week.")
+            warnings.warn(message = "The last schedule day is not Friday, so you cannot generate a full work week.")
             return None
         
         else:
@@ -269,33 +269,162 @@ class my_schedule(object):
             
             index = self.index_from_today(days_from_today)
             columns = self.day_columns
-            data = ...
+            data = day_schedule.day_schedule()
             
             return pd.DataFrame(data, index = index, columns = columns)
         
     def add_new_day(self):
-        return None
+        new_day = self.generate_new_day(-1 * self.days_until_today + 1)
+        self._day_schedules = pd.concat([self._day_schedules, new_day])
     
-    def generate_new_days(self):
-        return None
-        
-    def add_new_days(self):
-        return None
+    def generate_new_days(self, number_of_days):
+        return pd.concat([self.generate_new_day(days_from_today = i) for i in range(-1 * self.days_until_today + 1, -1 * self.days_until_today + number_of_days + 1)])
+    
+    def add_new_days(self, number_of_days):
+        new_days = self.generate_new_days(number_of_days)
+        self._day_schedules = pd.concat([self._day_schedules, new_days])
+    
+    def generate_new_days_until_today(self):
+        return pd.concat([self.generate_new_day(days_from_today = i) for i in range(-1 * self.days_until_today + 1, 1)])
+    
+    def add_new_days_until_today(self):
+        new_days_until_today = self.generate_new_days_until_today()
+        self._day_schedules = pd.concat([self.day_schedules, new_days_until_today])
     
     def generate_new_rest_of_week(self):
-        return None
         
+        if self.days_left_in_week == 0:
+            return None
+        
+        else:
+            return pd.concat([self.generate_new_day(days_from_today = i) for i in range(-1 * self.days_until_today + 1, -1 * self.days_until_today + self.days_left_in_week + 1)])
+    
     def add_new_rest_of_week(self):
-        return None
-    
+        
+        if self.days_until_today > 0:
+            self.add_new_days_until_today()
+        
+        new_rest_of_week = self.generate_new_rest_of_week()
+        
+        if new_rest_of_week is not None:
+            self._day_schedules = pd.concat([self.day_schedules, new_rest_of_week])
+        
     def generate_new_rest_of_work_week(self):
-        return None
         
-    def add_new_rest_of_work_week(self):
-        return None
+        if self.days_left_in_work_week == 0:
+            return None
+        
+        else:
+            return pd.concat([self.generate_new_day(days_from_today = i) for i in range(-1 * self.days_until_today + 1, -1 * self.days_until_today + self.days_left_in_work_week + 1)])
     
-    def generate_new_rest_of_weekend(self):
-        return None
+    def add_new_rest_of_work_week(self):
         
+        if self.days_until_today > 0:
+            self.add_new_days_until_today()
+            
+        new_rest_of_work_week = self.generate_new_rest_of_work_week()
+        
+        if new_rest_of_work_week is not None:
+            self._day_schedules = pd.concat([self.day_schedules, new_rest_of_work_week])
+        
+    def generate_new_rest_of_weekend(self):
+        
+        if self.days_left_in_weekend == 0:
+            return None
+        
+        else:
+            return pd.concat([self.generate_new_day(days_from_today = i) for i in range(-1 * self.days_until_today + 1, -1 * self.days_until_today + self.days_left_in_weekend + 1)])
+    
     def add_new_rest_of_weekend(self):
-        return None
+        
+        if self.days_until_today > 0:
+            self.add_new_days_until_today()
+            
+        new_rest_of_weekend = self.generate_new_rest_of_weekend()
+        
+        if new_rest_of_weekend is not None:
+            self._day_schedules = pd.concat([self.day_schedules, new_rest_of_weekend])
+    
+    def generate_new_week(self):
+        
+        if self.days_until_next_week != 1:
+            warnings.warn(message = "The last schedule day is not Sunday, so you cannot generate a full week.")
+            return None
+        
+        else:
+            return pd.concat([self.generate_new_day(days_from_today = i) for i in range(-1 * self.days_until_today + 1, -1 * self.days_until_today + 8)])
+    
+    def add_new_week(self):
+        
+        new_week = self.generate_new_week()
+            
+        if new_week is not None:
+            self._day_schedules = pd.concat([self.day_schedules, new_week])            
+        
+    def generate_new_work_week(self):
+        
+        if self.days_until_next_work_week != 1:
+            warnings.warn(message = "The last schedule day is not Sunday, so you cannot generate a full work week.")
+            return None
+        
+        else:
+            return pd.concat([self.generate_new_day(days_from_today = i) for i in range(-1 * self.days_until_today + 1, -1 * self.days_until_today + 6)])
+        
+    def add_new_work_week(self):
+        
+        new_work_week = self.generate_new_work_week()
+            
+        if new_work_week is not None:
+            self._day_schedules = pd.concat([self.day_schedules, new_work_week])
+        
+    def generate_new_weekend(self):
+        
+        if self.days_until_next_weekend != 1:
+            warnings.warn(message = "The last schedule day is not Friday, so you cannot generate a full work week.")
+            return None
+        
+        else:
+            return pd.concat([self.generate_new_day(days_from_today = i) for i in range(-1 * self.days_until_today + 1, -1 * self.days_until_today + 3)])
+        
+    def add_new_weekend(self):
+        
+        new_weekend = self.generate_new_weekend()
+            
+        if new_weekend is not None:
+            self._day_schedules = pd.concat([self.day_schedules, new_weekend])
+    
+    def remove_day(self):
+        
+        if self.day_schedules is None:
+            warnings.warn(message = "There is no schedule to remove days from.")
+        
+        elif self.day_schedules.shape[0] == 1:
+            self.day_schedules = None
+            
+        else:
+            self._day_schedules = self.day_schedules[:-1]
+        
+    def remove_days(self, number_of_days):
+        
+        if self.day_schedules is None:
+            warnings.warn(message = "There is no schedule to remove days from.")
+            
+        elif self.day_schedules.shape[0] < number_of_days:
+            warnings.warn(message = "The number of days input, to remove from the schedule, is more than the number of days currently in the schedule.")
+            
+        else:
+            self._day_schedules = self.day_schedules[:(-1 * number_of_days)]
+    
+    def remove_hanging_work_week(self):
+    
+    def remove_work_week(self):
+        
+    def remove_hanging_weekend(self):
+    
+    def remove_weekend(self):
+        
+    def remove_hanging_week(self):    
+    
+    def remove_week(self):
+        
+        
